@@ -1,6 +1,6 @@
 {
   "server": true,
-  "addr": "example.com",
+  "addr": "localhost",
   "port": 9225,
   "password": "blahblah",
   "limit": 100,

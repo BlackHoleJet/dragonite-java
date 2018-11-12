@@ -24,6 +24,8 @@ import org.pmw.tinylog.Logger;
 
 import java.io.IOException;
 import java.net.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ProxyMuxHandler {
 
@@ -115,7 +117,7 @@ public class ProxyMuxHandler {
             handleUDP(muxConn);
         }
     }
-
+    private final ExecutorService es= Executors.newSingleThreadExecutor();
     private void handleTCP(final InetSocketAddress socketAddress, final MultiplexedConnection muxConn) throws InterruptedException {
         //Check for loopback
         if (!allowLoopback && socketAddress.getAddress().isLoopbackAddress()) {
@@ -134,19 +136,24 @@ public class ProxyMuxHandler {
         Logger.debug("Connecting {} for client \"{}\" ({})",
                 socketAddress.toString(), clientName, clientAddress.toString());
         final Socket tcpSocket = new Socket();
-        try {
-            tcpSocket.connect(socketAddress, ProxyGlobalConstants.TCP_CONNECT_TIMEOUT_MS);
-        } catch (final IOException e) {
-            Logger.warn(e, "Unable to establish connection with {}", socketAddress.toString());
+//        es.submit(()->{
             try {
-                //Send failed response
-                final byte[] header = new MuxConnectionResponseHeader(ConnectionStatus.ERROR, 0, e.getMessage()).toBytes();
-                muxConn.send(header);
-            } catch (final SenderClosedException ignored) {
+
+                tcpSocket.connect(socketAddress, ProxyGlobalConstants.TCP_CONNECT_TIMEOUT_MS);
+
+            } catch (final IOException e) {
+                Logger.warn(e, "Unable to establish connection with {}", socketAddress.toString());
+                try {
+                    //Send failed response
+                    final byte[] header = new MuxConnectionResponseHeader(ConnectionStatus.ERROR, 0, e.getMessage()).toBytes();
+                    muxConn.send(header);
+                } catch (final SenderClosedException | InterruptedException ignored) {
+                    Logger.error(ignored.getMessage());
+                }
+                muxConn.close();
+                return;
             }
-            muxConn.close();
-            return;
-        }
+//        });
         try {
             //Send OK response
             final byte[] header = new MuxConnectionResponseHeader(ConnectionStatus.OK, 0, "Connected").toBytes();

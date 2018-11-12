@@ -36,10 +36,10 @@ public final class SOCKS5SocketHelper {
             VER	NMETHODS	METHODS
             1	1	        1-255
          */
-        if (inputStream.readByte() != SOCKS5_VERSION && inputStream.readByte() != 0x01) {
+        if (inputStream.readByte() != SOCKS5_VERSION) {
             throw new SOCKS5Exception("Invalid protocol version:" + BytsHexUtils.byteToHex(inputStream.readByte()));
         }
-        boolean supportNoAuth = true;// false;
+        boolean supportNoAuth = false;
         final int methodCount = inputStream.readUnsignedByte();
         for (int i = 0; i < methodCount; i++) {
             if (inputStream.readByte() == 0x00) {
@@ -60,7 +60,7 @@ public final class SOCKS5SocketHelper {
             1	1	0x00	1	    ...         2
          */
         if (inputStream.readByte() != SOCKS5_VERSION) {
-            throw new SOCKS5Exception("Invalid protocol version");
+            throw new SOCKS5Exception("Invalid protocol version" + BytsHexUtils.byteToHex(inputStream.readByte()));
         }
         final byte cmd = inputStream.readByte();
         final byte rsv = inputStream.readByte(); //reserved, we just ignore it

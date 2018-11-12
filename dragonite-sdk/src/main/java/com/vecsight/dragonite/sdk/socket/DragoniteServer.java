@@ -24,10 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 public class DragoniteServer {
 
@@ -41,32 +38,20 @@ public class DragoniteServer {
     private final PacketCryptor packetCryptor;
     private final int cryptorOverhead;
     //end
-
-    private volatile long defaultSendSpeed;
-
     private final DatagramSocket datagramSocket;
-
     private final BlockingQueue<DatagramPacket> packetBuffer;
-
     private final Thread receiveThread; //THREAD
-
     private final Thread handleThread; //THREAD
-
     private final Thread aliveDetectThread; //THREAD
-
-    private volatile boolean doReceive = true, doHandle = true, doAliveDetect = true;
-
     private final ConcurrentMap<SocketAddress, DragoniteServerSocket> connectionMap_concurrent = new ConcurrentHashMap<>();
-
     private final BlockingQueue<DragoniteSocket> acceptQueue = new LinkedBlockingQueue<>();
-
-    private volatile boolean alive = true;
-
     private final Object closeLock = new Object();
-
     private final DevConsoleWebServer devConsoleWebServer;
-
     private final InetSocketAddress devConsoleBindAddress;
+    private final ExecutorService es = Executors.newCachedThreadPool();
+    private volatile long defaultSendSpeed;
+    private volatile boolean doReceive = true, doHandle = true, doAliveDetect = true;
+    private volatile boolean alive = true;
 
     public DragoniteServer(final InetAddress address, final int port, final long defaultSendSpeed, final DragoniteSocketParameters parameters) throws SocketException {
         datagramSocket = new DatagramSocket(port, address);
@@ -116,7 +101,13 @@ public class DragoniteServer {
                 while (doHandle) {
                     final DatagramPacket packet = packetBuffer.take();
                     if (packet != null) {
-                        handlePacket(packet);
+//                        es.submit(() -> {
+                            try {
+                                handlePacket(packet);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+//                        });
                     }
                 }
             } catch (final InterruptedException ignored) {

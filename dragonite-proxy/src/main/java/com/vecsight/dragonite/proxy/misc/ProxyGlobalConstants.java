@@ -44,7 +44,7 @@ public final class ProxyGlobalConstants {
 
     public static final int SOCKS5_PORT = 1080;
 
-    public static final int TCP_CONNECT_TIMEOUT_MS = 4000;
+    public static final int TCP_CONNECT_TIMEOUT_MS = 9000;
 
     //Update shits
 
