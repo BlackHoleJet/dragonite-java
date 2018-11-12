@@ -114,7 +114,7 @@ public class ProxyJSONConfigParser {
 
             final String aclPath = jsonObject.getString("acl", null);
             final ParsedACL parsedACL;
-            if (aclPath != null) {
+            if (aclPath != null && aclPath.length() > 0) {
                 try {
                     parsedACL = ACLFileParser.parse(FileUtils.pathToReader(aclPath));
                     config.setAcl(parsedACL);
