@@ -9,6 +9,7 @@ package com.vecsight.dragonite.proxy.network.socks5;
 
 import com.vecsight.dragonite.proxy.exception.SOCKS5Exception;
 import com.vecsight.dragonite.utils.binary.BinaryWriter;
+import com.vecsight.dragonite.utils.misc.BytsHexUtils;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -35,10 +36,10 @@ public final class SOCKS5SocketHelper {
             VER	NMETHODS	METHODS
             1	1	        1-255
          */
-        if (inputStream.readByte() != SOCKS5_VERSION) {
-            throw new SOCKS5Exception("Invalid protocol version");
+        if (inputStream.readByte() != SOCKS5_VERSION && inputStream.readByte() != 0x01) {
+            throw new SOCKS5Exception("Invalid protocol version:" + BytsHexUtils.byteToHex(inputStream.readByte()));
         }
-        boolean supportNoAuth = false;
+        boolean supportNoAuth = true;// false;
         final int methodCount = inputStream.readUnsignedByte();
         for (int i = 0; i < methodCount; i++) {
             if (inputStream.readByte() == 0x00) {
