@@ -7,6 +7,8 @@
 
 package com.vecsight.dragonite.sdk.socket;
 
+import co.paralleluniverse.fibers.SuspendExecution;
+import co.paralleluniverse.strands.Strand;
 import com.vecsight.dragonite.sdk.config.DragoniteSocketParameters;
 import com.vecsight.dragonite.sdk.cryptor.PacketCryptor;
 import com.vecsight.dragonite.sdk.exception.ConnectionNotAliveException;
@@ -165,10 +167,12 @@ public class DragoniteClientSocket extends DragoniteSocket {
                     } else {
                         doAliveDetect = false;
                     }
-                    Thread.sleep(1000);
+                    Strand.sleep(1000);
                 }
             } catch (final InterruptedException ignored) {
                 //okay
+            } catch (SuspendExecution suspendExecution) {
+                suspendExecution.printStackTrace();
             }
         }, "DC-AliveDetect");
         aliveDetectThread.start();

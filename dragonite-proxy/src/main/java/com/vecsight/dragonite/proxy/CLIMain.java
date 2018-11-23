@@ -277,7 +277,7 @@ public final class CLIMain {
         }
 
         if (!commandLine.hasOption("skip-update")) {
-            checkUpdate();
+//            checkUpdate();
         }
 
         final boolean useConfigFile = commandLine.hasOption("c");

@@ -7,6 +7,8 @@
 
 package com.vecsight.dragonite.sdk.socket;
 
+import co.paralleluniverse.fibers.Fiber;
+import co.paralleluniverse.strands.Strand;
 import com.vecsight.dragonite.sdk.misc.DragoniteGlobalConstants;
 import com.vecsight.dragonite.sdk.misc.NumUtils;
 import com.vecsight.dragonite.sdk.msg.ReliableMessage;
@@ -29,7 +31,7 @@ public class ConnectionResendHandler {
 
     private final int ackDelayCompensation;
 
-    private final Thread resendThread;
+    private final Fiber resendThread;
 
     private volatile boolean running = true;
 
@@ -55,7 +57,7 @@ public class ConnectionResendHandler {
         this.minResendMS = minResendMS;
         this.ackDelayCompensation = ackDelayCompensation;
 
-        resendThread = new Thread(() -> {
+        resendThread = new Fiber("DS-Resend", () -> {
             try {
                 while (canRun()) {
 
@@ -90,7 +92,7 @@ public class ConnectionResendHandler {
                     }
 
                     if (sleepTime > 0) {
-                        Thread.sleep(sleepTime);
+                        Strand.sleep(sleepTime);
                     }
                     //sleep done
                     final ReliableMessage message = messageConcurrentMap.get(sequence);
@@ -109,7 +111,7 @@ public class ConnectionResendHandler {
             } catch (final InterruptedException ignored) {
                 //okay
             }
-        }, "DS-Resend");
+        });
         resendThread.start();
     }
 
@@ -175,7 +177,7 @@ public class ConnectionResendHandler {
 
     protected void close() {
         running = false;
-        resendThread.interrupt();
+        resendThread.cancel(true);
         synchronized (queueLock) {
             queueLock.notifyAll();
             riQueue.clear();

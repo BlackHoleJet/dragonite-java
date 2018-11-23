@@ -7,9 +7,11 @@
 
 package com.vecsight.dragonite.sdk.socket;
 
-import com.github.bucket4j.Bandwidth;
-import com.github.bucket4j.Bucket;
-import com.github.bucket4j.Bucket4j;
+
+
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.Bucket4j;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -43,7 +45,7 @@ public class ManagedSendAction implements SendAction {
     }
 
     public void sendPacket(final byte[] bytes) throws InterruptedException, IOException {
-        bucket.consume(bytes.length);
+        while(!bucket.tryConsume(bytes.length));
         sendAction.sendPacket(bytes);
         sendRawLength.addAndGet(bytes.length);
     }

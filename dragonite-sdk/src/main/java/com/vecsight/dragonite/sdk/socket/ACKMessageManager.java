@@ -7,6 +7,8 @@
 
 package com.vecsight.dragonite.sdk.socket;
 
+import co.paralleluniverse.fibers.SuspendExecution;
+import co.paralleluniverse.strands.Strand;
 import com.vecsight.dragonite.sdk.msg.types.ACKMessage;
 
 import java.io.IOException;
@@ -91,10 +93,12 @@ public class ACKMessageManager {
                             ackLoopLock.notifyAll();
                         }
                     }
-                    Thread.sleep(this.delayMS);
+                    Strand.sleep(this.delayMS);
                 }
             } catch (final InterruptedException ignored) {
                 //okay
+            } catch (SuspendExecution suspendExecution) {
+                suspendExecution.printStackTrace();
             }
         }, "DS-ACK");
         sendThread.start();
