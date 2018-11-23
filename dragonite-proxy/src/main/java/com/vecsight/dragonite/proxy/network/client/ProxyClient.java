@@ -7,6 +7,7 @@
 
 package com.vecsight.dragonite.proxy.network.client;
 
+import co.paralleluniverse.fibers.Fiber;
 import com.vecsight.dragonite.mux.conn.MultiplexedConnection;
 import com.vecsight.dragonite.mux.conn.Multiplexer;
 import com.vecsight.dragonite.mux.exception.ConnectionAlreadyExistsException;
@@ -54,7 +55,7 @@ public class ProxyClient {
 
     private volatile Multiplexer multiplexer;
 
-    private final Thread acceptThread;
+    private final Fiber acceptThread;
 
     private volatile Thread muxReceiveThread;
 
@@ -82,7 +83,7 @@ public class ProxyClient {
 
         prepareUnderlyingConnection(dragoniteSocketParameters);
 
-        acceptThread = new Thread(() -> {
+        acceptThread = new Fiber("PC-Accept",() -> {
             Socket socket;
             try {
                 while (doAccept && (socket = serverSocket.accept()) != null) {
@@ -93,7 +94,7 @@ public class ProxyClient {
             } catch (final IOException e) {
                 Logger.error(e, "Unable to accept TCP connections");
             }
-        }, "PC-Accept");
+        });
         acceptThread.start();
     }
 

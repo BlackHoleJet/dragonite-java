@@ -1,0 +1,16 @@
+{
+  "server": false,
+  "addr": "139.59.118.153",
+  "port": 9225,
+  "socks5port": 1080,
+  "password": "blahblah",
+  "up": 5,
+  "down": 5,
+  "acl": "",
+  "mtu": 1300,
+  "multiplier": 4,
+  "dscp": 0,
+  "webpanel": true,
+  "paneladdr": "127.0.0.1",
+  "panelport": 8089
+}
