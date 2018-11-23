@@ -1,6 +1,6 @@
 {
   "server": false,
-  "addr": "139.59.118.153",
+  "addr": "localhost",
   "port": 9225,
   "socks5port": 1080,
   "password": "blahblah",
@@ -12,5 +12,5 @@
   "dscp": 0,
   "webpanel": true,
   "paneladdr": "127.0.0.1",
-  "panelport": 8088
+  "panelport": 8089
 }

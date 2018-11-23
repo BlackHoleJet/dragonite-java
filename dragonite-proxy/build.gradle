@@ -17,10 +17,29 @@ apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'idea'
 
+ext.classifier      = ':jdk8'
+
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 mainClassName = 'com.vecsight.dragonite.proxy.CLIMain'
+
+ext.quasarVer       = '0.7.10'
+ext.junitVer        = '4.12'
+
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+configurations {
+    quasar
+}
+
+configurations.all {
+    resolutionStrategy {
+        failOnVersionConflict()
+    }
+}
+
+
 
 repositories {
     mavenCentral()
@@ -38,8 +57,51 @@ dependencies {
     compile group: 'org.tinylog', name: 'tinylog', version: '1.2'
     compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
     compile 'com.eclipsesource.minimal-json:minimal-json:0.9.4'
+    compile "co.paralleluniverse:quasar-core:${quasarVer}${classifier}"
+
+    quasar "co.paralleluniverse:quasar-core:${quasarVer}${classifier}@jar"
+
+    testCompile "junit:junit:$junitVer"
 }
 
 buildConfig {
     clsName = 'ProxyBuildConfig'
+}
+
+
+
+test {
+    beforeTest { desc ->
+        logger.quiet("Running test: " + desc)
+    }
+
+    afterTest { desc, result ->
+        if(result.resultType == TestResult.ResultType.FAILURE) {
+            logger.quiet("Failed test ${desc.name} [${desc.className}] with exception: ${result.exception}")
+            if(result.exception != null) {
+                result.exception.printStackTrace()
+            }
+        }
+    }
+}
+
+
+tasks.withType(Test) {
+    useJUnit()
+    // systemProperty 'co.paralleluniverse.fibers.verifyInstrumentation', 'true'
+
+    jvmArgs "-Xmx2048m"
+    doLast() {
+        println "file://" + getReports().getHtml().getDestination() + "/index.html"
+    }
+}
+
+if (project.hasProperty('method')) {
+    apply from: "../gradle/${project.getProperty('method')}.gradle"
+} else {
+    apply from: "../gradle/agent.gradle"
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.12'
 }
