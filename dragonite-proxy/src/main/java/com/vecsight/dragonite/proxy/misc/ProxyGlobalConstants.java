@@ -7,7 +7,7 @@
 
 package com.vecsight.dragonite.proxy.misc;
 
-import com.vecsight.dragonite.ProxyBuildConfig;
+//import com.vecsight.dragonite.ProxyBuildConfig;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -16,7 +16,7 @@ public final class ProxyGlobalConstants {
 
     //Version shits
 
-    public static final String APP_VERSION = ProxyBuildConfig.VERSION;
+    public static final String APP_VERSION = "0.4.0";
 
     //Protocol shits
 

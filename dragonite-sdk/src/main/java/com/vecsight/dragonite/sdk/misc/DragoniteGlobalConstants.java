@@ -7,13 +7,13 @@
 
 package com.vecsight.dragonite.sdk.misc;
 
-import com.vecsight.dragonite.DragoniteBuildConfig;
+//import com.vecsight.dragonite.DragoniteBuildConfig;
 
 public final class DragoniteGlobalConstants {
 
     //Version shits
 
-    public static final String LIBRARY_VERSION = DragoniteBuildConfig.VERSION;
+    public static final String LIBRARY_VERSION = "0.4.0";
 
     //Protocol shits
 

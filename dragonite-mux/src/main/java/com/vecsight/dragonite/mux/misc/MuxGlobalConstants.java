@@ -8,13 +8,13 @@
 package com.vecsight.dragonite.mux.misc;
 
 
-import com.vecsight.dragonite.MuxBuildConfig;
+//import com.vecsight.dragonite.MuxBuildConfig;
 
 public final class MuxGlobalConstants {
 
     //Version shits
 
-    public static final String LIBRARY_VERSION = MuxBuildConfig.VERSION;
+    public static final String LIBRARY_VERSION = "0.4.0";
 
     //Protocol shits
 

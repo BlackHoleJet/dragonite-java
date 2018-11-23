@@ -7,7 +7,7 @@
 
 package com.vecsight.dragonite.forwarder.misc;
 
-import com.vecsight.dragonite.ForwarderBuildConfig;
+//import com.vecsight.dragonite.ForwarderBuildConfig;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -16,7 +16,7 @@ public final class ForwarderGlobalConstants {
 
     //Version shits
 
-    public static final String APP_VERSION = ForwarderBuildConfig.VERSION;
+    public static final String APP_VERSION = "0.4.0";
 
     //Protocol shits
 
