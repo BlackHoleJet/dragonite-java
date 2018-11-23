@@ -239,6 +239,7 @@ public final class CLIMain {
         }
     }
 
+    // mvn  dependency:properties  exec:exec
     public static void main(final String[] args) {
         Configurator.currentConfig()
                 .level(Level.INFO)
