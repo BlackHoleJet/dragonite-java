@@ -70,6 +70,10 @@ public class DevConsoleWebServer {
         httpServer.start();
     }
 
+    public static void main(final String[] args){
+
+    }
+
     private String getJSON(final List<DragoniteSocketStatistics> statisticsList) {
         return "{\"title\":\"" + WEB_TITLE +
                 "\",\"version\":\"" + DragoniteGlobalConstants.LIBRARY_VERSION +

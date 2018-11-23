@@ -13,8 +13,31 @@ apply plugin: 'java'
 apply plugin: 'application'
 
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
 
 mainClassName = 'com.vecsight.dragonite.echo.EchoMain'
+
+ext.classifier      = ':jdk8'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+ext.quasarVer       = '0.7.10'
+ext.junitVer        = '4.12'
+
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+configurations {
+    quasar
+}
+
+configurations.all {
+    resolutionStrategy {
+        failOnVersionConflict()
+    }
+}
+
 
 repositories {
     jcenter()
@@ -22,4 +45,57 @@ repositories {
 
 dependencies {
     compile project(':dragonite-sdk')
+    compile "co.paralleluniverse:quasar-core:${quasarVer}${classifier}"
+
+    quasar "co.paralleluniverse:quasar-core:${quasarVer}${classifier}@jar"
+
+    testCompile "junit:junit:$junitVer"
 }
+
+
+
+
+
+test {
+    beforeTest { desc ->
+        logger.quiet("Running test: " + desc)
+    }
+
+    afterTest { desc, result ->
+        if(result.resultType == TestResult.ResultType.FAILURE) {
+            logger.quiet("Failed test ${desc.name} [${desc.className}] with exception: ${result.exception}")
+            if(result.exception != null) {
+                result.exception.printStackTrace()
+            }
+        }
+    }
+}
+
+
+tasks.withType(Test) {
+    useJUnit()
+    // systemProperty 'co.paralleluniverse.fibers.verifyInstrumentation', 'true'
+
+    jvmArgs "-Xmx2048m"
+    doLast() {
+        println "file://" + getReports().getHtml().getDestination() + "/index.html"
+    }
+}
+
+if (project.hasProperty('method')) {
+    apply from: "../gradle/${project.getProperty('method')}.gradle"
+} else {
+    apply from: "../gradle/agent.gradle"
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.12'
+}
+
+
+
+
+
+
+
+

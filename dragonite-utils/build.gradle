@@ -18,6 +18,7 @@ apply plugin: 'java-library-distribution'
 apply plugin: 'idea'
 
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 buildConfig {
     clsName = 'UtilsBuildConfig'
