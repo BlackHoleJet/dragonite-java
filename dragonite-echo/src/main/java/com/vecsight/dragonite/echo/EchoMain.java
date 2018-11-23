@@ -18,32 +18,38 @@ import java.net.SocketException;
 
 public final class EchoMain {
 
-    public static void main(final String[] args) throws SocketException, InterruptedException {
+    public static void main(final String[] args) {
         final DragoniteSocketParameters parameters = new DragoniteSocketParameters();
         parameters.setEnableWebPanel(true);
         parameters.setWebPanelBindAddress(new InetSocketAddress(8001));
-        final DragoniteServer dragoniteServer = new DragoniteServer(9225, 102400, parameters);
-        DragoniteSocket tmpDragoniteSocket;
-        while ((tmpDragoniteSocket = dragoniteServer.accept()) != null) {
-            final DragoniteSocket dragoniteSocket = tmpDragoniteSocket;
-            print("New connection from " + dragoniteSocket.getRemoteSocketAddress().toString());
-            new Thread(() -> {
-                try {
-                    while (dragoniteSocket.isAlive()) {
-                        final byte[] bytes = dragoniteSocket.read();
-                        print(new String(bytes));
-                        dragoniteSocket.send(bytes);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
+        DragoniteServer dragoniteServer = null;
+        try {
+            dragoniteServer = new DragoniteServer(9225, 102400, parameters);
+
+            DragoniteSocket tmpDragoniteSocket;
+            while ((tmpDragoniteSocket = dragoniteServer.accept()) != null) {
+                final DragoniteSocket dragoniteSocket = tmpDragoniteSocket;
+                print("New connection from " + dragoniteSocket.getRemoteSocketAddress().toString());
+                new Thread(() -> {
                     try {
-                        dragoniteSocket.closeGracefully();
-                    } catch (InterruptedException | IOException | SenderClosedException ignored) {
+                        while (dragoniteSocket.isAlive()) {
+                            final byte[] bytes = dragoniteSocket.read();
+                            print(new String(bytes));
+                            dragoniteSocket.send(bytes);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        try {
+                            dragoniteSocket.closeGracefully();
+                        } catch (InterruptedException | IOException | SenderClosedException ignored) {
+                        }
+                        print(dragoniteSocket.getRemoteSocketAddress().toString() + " connection closed");
                     }
-                    print(dragoniteSocket.getRemoteSocketAddress().toString() + " connection closed");
-                }
-            }).start();
+                }).start();
+            }
+        } catch (SocketException | InterruptedException e) {
+            e.printStackTrace();
         }
     }
 

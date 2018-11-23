@@ -150,7 +150,7 @@
         <artifactId>exec-maven-plugin</artifactId> <!-- Run with "mvn compile maven-dependency-plugin:properties exec:exec" -->
         <version>1.3.2</version>
         <configuration>
-          <mainClass>testgrp.QuasarHelloWorld</mainClass>
+          <mainClass>com.vecsight.dragonite.proxy.CLIMain</mainClass>
           <workingDirectory>target/classes</workingDirectory>
           <executable>java</executable>
           <arguments>
