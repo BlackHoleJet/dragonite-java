@@ -240,7 +240,7 @@ public final class CLIMain {
     }
 
     // mvn  dependency:properties  exec:exec
-    public static void main(final String[] args) {
+    public static void main(String[] args) {
         Configurator.currentConfig()
                 .level(Level.INFO)
                 .formatPattern("{date:HH:mm:ss(X)} [{level}] {message}")
@@ -257,6 +257,9 @@ public final class CLIMain {
 
 
         try {
+            if(args.length==0) {
+                args = new String[]{"-c/home/linker/gits/dragonite-java/dragonite-proxy/samples/client_x.json"};
+            }
             commandLine = parser.parse(options, getArgs(args));
         } catch (final ParseException e) {
             Logger.error(e, "Cannot parse arguments");

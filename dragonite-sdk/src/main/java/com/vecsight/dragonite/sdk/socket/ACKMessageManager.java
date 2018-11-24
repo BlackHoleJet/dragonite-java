@@ -7,14 +7,16 @@
 
 package com.vecsight.dragonite.sdk.socket;
 
+import co.paralleluniverse.common.util.ConcurrentSet;
+import co.paralleluniverse.fibers.Fiber;
 import co.paralleluniverse.fibers.SuspendExecution;
 import co.paralleluniverse.strands.Strand;
 import com.vecsight.dragonite.sdk.msg.types.ACKMessage;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class ACKMessageManager {
 
@@ -24,11 +26,11 @@ public class ACKMessageManager {
 
     private final SendAction action;
 
-    private final Thread sendThread;
+    private final Fiber sendThread;
 
     private final int delayMS;
 
-    private final Set<Integer> ackList = new HashSet<>();
+    private final ConcurrentLinkedDeque<Integer> ackList = new ConcurrentLinkedDeque<Integer>();
 
     private volatile int receivedSeq = 0;
 
@@ -38,30 +40,27 @@ public class ACKMessageManager {
 
     private volatile boolean enableLoopLock = false;
 
-    private final Object ackLoopLock = new Object();
+//    private final Object ackLoopLock = new Object();
 
     protected ACKMessageManager(final DragoniteSocket socket, final SendAction action, final int delayMS, final int MTU) {
         this.socket = socket;
         this.MTU = MTU;
         this.action = action;
         this.delayMS = delayMS;
-        sendThread = new Thread(() -> {
+        sendThread = new Fiber("DS-ACK", () -> {
             try {
                 while (running && socket.isAlive()) {
-                    int[] ackarray = null;
-                    synchronized (ackList) {
-                        if (ackList.size() > 0) {
-                            ackarray = toIntArray(ackList);
-                            ackList.clear();
-                        }
+                    List<Integer> ackarray = new ArrayList();
+                    while (ackList.size() > 0 && ackarray.size() < 10) {
+                        ackarray.add(ackList.remove());
                     }
-                    if (ackarray != null && ackarray.length > 0) {
+
                         receivedSeqChanged = false;
 
-                        if (ACKMessage.FIXED_LENGTH + ackarray.length * Integer.BYTES > MTU) {
+                        if (ACKMessage.FIXED_LENGTH + ackarray.size() * Integer.BYTES > MTU) {
                             final int payloadIntSize = (MTU - ACKMessage.FIXED_LENGTH) / Integer.BYTES;
-                            int msgCount = ackarray.length / payloadIntSize;
-                            if (ackarray.length % payloadIntSize != 0) {
+                            int msgCount = ackarray.size() / payloadIntSize;
+                            if (ackarray.size() % payloadIntSize != 0) {
                                 msgCount += 1;
                             }
                             if (msgCount == 0) msgCount = 1;
@@ -71,11 +70,11 @@ public class ACKMessageManager {
                             } else {
                                 int offset = 0, nextLen = payloadIntSize;
                                 for (int i = 0; i < msgCount; i++) {
-                                    final int[] acks = Arrays.copyOfRange(ackarray, offset, offset + nextLen);
-                                    sendACKArray(acks);
+//                                    final int[] acks = Arrays.copyOfRange(ackarray.toArray(), offset, offset + nextLen);
+                                    sendACKArray(ackarray);
                                     offset += nextLen;
-                                    if (offset + nextLen > ackarray.length) {
-                                        nextLen = ackarray.length - (msgCount - 1) * payloadIntSize;
+                                    if (offset + nextLen > ackarray.size()) {
+                                        nextLen = ackarray.size() - (msgCount - 1) * payloadIntSize;
                                     }
                                 }
                             }
@@ -83,15 +82,15 @@ public class ACKMessageManager {
                             sendACKArray(ackarray);
                         }
 
-                    } else if (receivedSeqChanged) {
+                    if (receivedSeqChanged) {
                         receivedSeqChanged = false;
                         sendACKArray(new int[]{});
                     }
 
                     if (enableLoopLock) {
-                        synchronized (ackLoopLock) {
-                            ackLoopLock.notifyAll();
-                        }
+//                        synchronized (ackLoopLock) {
+//                            ackLoopLock.notifyAll();
+//                        }
                     }
                     Strand.sleep(this.delayMS);
                 }
@@ -100,15 +99,15 @@ public class ACKMessageManager {
             } catch (SuspendExecution suspendExecution) {
                 suspendExecution.printStackTrace();
             }
-        }, "DS-ACK");
+        });
         sendThread.start();
     }
 
     protected void waitAckLoop() throws InterruptedException {
         enableLoopLock = true;
-        synchronized (ackLoopLock) {
-            ackLoopLock.wait();
-        }
+//        synchronized (ackLoopLock) {
+//            ackLoopLock.wait();
+//        }
     }
 
     private int[] toIntArray(final Set<Integer> integerSet) {
@@ -120,6 +119,13 @@ public class ACKMessageManager {
         return array;
     }
 
+    protected void sendACKArray(final List<Integer> ackarray) {
+        int[] aa=new int[ackarray.size()];
+        for (int i=0;i<aa.length;i++){
+            aa[i]=ackarray.get(i);
+        }
+        sendACKArray(aa);
+    }
     protected void sendACKArray(final int[] ackarray) {
         //System.out.println("SEND ACK " + System.currentTimeMillis());
         final ACKMessage ackMessage = new ACKMessage(ackarray, receivedSeq);
@@ -144,9 +150,9 @@ public class ACKMessageManager {
         running = false;
         sendThread.interrupt();
         ackList.clear();
-        synchronized (ackLoopLock) {
-            ackLoopLock.notifyAll();
-        }
+//        synchronized (ackLoopLock) {
+//            ackLoopLock.notifyAll();
+//        }
     }
 
 }

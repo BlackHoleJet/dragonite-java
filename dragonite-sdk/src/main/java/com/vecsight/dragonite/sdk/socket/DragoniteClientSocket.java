@@ -70,7 +70,7 @@ public class DragoniteClientSocket extends DragoniteSocket {
 
     private volatile long lastReceiveTime, lastSendTime;
 
-    private final Object closeLock = new Object();
+//    private final Object closeLock = new Object();
 
     private volatile String description;
 
@@ -220,6 +220,13 @@ public class DragoniteClientSocket extends DragoniteSocket {
             packet.setSocketAddress(socketAddress);
             datagramSocket.send(packet);
             updateLastSendTime();
+            try {
+                Strand.sleep(10);
+            } catch (SuspendExecution suspendExecution) {
+                suspendExecution.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -269,17 +276,18 @@ public class DragoniteClientSocket extends DragoniteSocket {
 
     @Override
     public void closeGracefully() throws InterruptedException, IOException, SenderClosedException {
-        synchronized (closeLock) {
+//        synchronized (closeLock) {
+
             if (alive) {
                 sender.sendCloseMessage((short) 0, true, true);
                 destroy();
             }
-        }
+//        }
     }
 
     @Override
     public void destroy() {
-        synchronized (closeLock) {
+//        synchronized (closeLock) {
             if (alive) {
                 alive = false;
 
@@ -304,7 +312,7 @@ public class DragoniteClientSocket extends DragoniteSocket {
                     devConsoleWebServer.stop();
                 }
             }
-        }
+//        }
     }
 
     @Override
