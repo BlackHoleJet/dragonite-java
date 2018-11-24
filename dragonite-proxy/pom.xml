@@ -134,7 +134,7 @@
            as per http://maven.apache.org/plugins/maven-dependency-plugin/properties-mojo.html -->
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.5.1</version>
+        <version>3.1.1</version>
         <executions>
           <execution>
             <id>getClasspathFilenames</id>
@@ -175,7 +175,7 @@
             <!-- argument>-javaagent:${co.paralleluniverse:quasar-core:jar}</argument-->
 
             <!-- Quasar Agent for JDK 8 -->
-            <argument>-javaagent:${co.paralleluniverse:quasar-core:jar:jdk8}</argument> <!-- Add "=b" to force instrumenting blocking calls like Thread.sleep() -->
+            <argument>-javaagent:${co.paralleluniverse:quasar-core:jar:jdk8}=bmc</argument> <!-- Add "=b" to force instrumenting blocking calls like Thread.sleep() -->
 
             <!-- Classpath -->
             <argument>-classpath</argument> <classpath/>
@@ -213,6 +213,108 @@
           <argLine>-javaagent:${co.paralleluniverse:quasar-core:jar:jdk8}</argLine>
         </configuration>
       </plugin>
+
+
+
+
+        <!-- BUILD CAPSULES EXAMPLE -->
+        <plugin>
+            <groupId>sg.enixsoft</groupId>
+            <artifactId>capsule-maven-plugin</artifactId>
+            <version>${capsule.maven.plugin.version}</version>
+            <configuration>
+
+                <!-- REQUIRED -->
+                <appClass>com.vecsight.dragonite.proxy.CLIMain</appClass>
+
+                <type>fat</type>
+
+                <execPluginConfig>root</execPluginConfig>
+                <customDescriptor>-cap</customDescriptor>
+
+                <properties>
+                    <property>
+                        <key>propertyName1</key>
+                        <value>propertyValue1</value>
+                    </property>
+                    <property>
+                        <key>propertyName2</key>
+                        <!-- empty value is ok -->
+                    </property>
+                </properties>
+
+                <manifest>
+                    <entry>
+                        <key>JVM-Args</key>
+                        <value>-Xmx512m</value>
+                    </entry>
+                    <entry>
+                        <key>Java-Agents</key>
+                        <value>quasar-core-0.7.10-jdk8.jar</value>
+                    </entry>
+                    <entry>
+                        <key>Repositories</key>
+                        <value>local central</value>
+                    </entry>
+                </manifest>
+
+            </configuration>
+            <!-- BUILD CAPSULES AUTOMATICALLY AT PACKAGE PHASE -->
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>build</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+        <!--use for detect suspendable classes-->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.8</version>
+            <executions>
+                <execution>
+                    <id>instrument-suspendables</id>
+                    <phase>compile</phase>
+                    <configuration>
+                        <target>
+                            <property name="ant_classpath" refid="maven.dependency.classpath"/>
+                            <taskdef name="scanSuspendables"
+                                     classname="co.paralleluniverse.fibers.instrument.SuspendablesScanner"
+                                     classpath="${ant_classpath}"/>
+                            <scanSuspendables auto="true"
+                                              suspendablesFile="target/resources/META-INF/suspendables">
+                            </scanSuspendables>
+                        </target>
+                    </configuration>
+                    <goals>
+                        <goal>run</goal>
+                    </goals>
+                </execution>
+
+                <execution>
+                    <id>instrument-classes</id>
+                    <phase>compile</phase>
+                    <configuration>
+                        <tasks>
+                            <property name="ant_classpath" refid="maven.dependency.classpath"/>
+                            <taskdef name="instrumentationTask"
+                                     classname="co.paralleluniverse.fibers.instrument.InstrumentationTask"
+                                     classpath="${ant_classpath}"/>
+                            <!-- Use "allowMonitors" to allow instrumenting methods containing synchronization -->
+                            <instrumentationTask allowMonitors="true" allowBlocking="true" check="true" verbose="true" debug="true">
+                                <fileset dir="${project.build.directory}/classes/" includes="**/*.class"/>
+                            </instrumentationTask>
+                        </tasks>
+                    </configuration>
+                    <goals>
+                        <goal>run</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+
     </plugins>
   </build>
 </project>
