@@ -154,6 +154,7 @@
           <workingDirectory>target/classes</workingDirectory>
           <executable>java</executable>
           <arguments>
+              <argument>-Djava.util.concurrent.ForkJoinPool.common.parallelism=200</argument>
             <!-- Debug -->
             <!-- argument>-Xdebug<argument -->
             <!-- argument>-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005<argument -->
